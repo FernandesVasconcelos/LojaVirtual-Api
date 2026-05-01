@@ -156,3 +156,20 @@ app.put("/api/produtos/:id", async (req: Request, res: Response) => {
 
     res.json({ sucesso: true, dados: produtos[index] });
 })
+
+app.delete("/api/produtos/:id", async (req: Request, res: Response) => {
+
+    const {id} = req.params;
+    let produtos = await lerArquivo();
+
+    const existe = produtos.find(p => p.id === Number(id));
+    if (!existe) {
+        return res.status(404).json({ sucesso: false, erro: ["Produto não encontrado."]})
+    }
+
+    const novaLista = produtos.filter(p => p.id === Number(id));
+
+    await salvarArquivo(novaLista);
+
+    res.json({ sucesso: true, mensagem: ["Produto removido."]});
+});
