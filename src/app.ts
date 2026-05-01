@@ -78,6 +78,11 @@ async function salvarArquivo (produtos: Produto): Promise<void> {
     }
 }
 
+app.get("/", async (req: Request, res : Response) => {
+    const produtos = await lerArquivo();
+    res.render("index", {produtos});
+})
+
 app.get("/api/produtos", async (req: Request, res: Response) => {
     const produtos = await lerArquivo();
     res.json({ sucesso: true, dados: produtos});
@@ -88,6 +93,9 @@ app.post("/api/produtos", async (req: Request, res: Response) => {
     const produtos = await lerArquivo();
 
     const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
+    
+    //O ID foi corrigido pelo github copilot, que resolveu criando a variável maxId
+
     const NovoProduto: Produto = {
         id: maxId + 1,
         nome,
@@ -96,4 +104,23 @@ app.post("/api/produtos", async (req: Request, res: Response) => {
         estoque: Number(estoque),
         disponivel: true
     }
+})
+
+app.get("/api/produtos/id", async (req: Request, res: Response) => {
+    const {id} = req.params
+    const produtos = await lerArquivo();
+    const produtoEncontrado = produtos.find(p => p.id === Number(id));
+
+    if (!produtoEncontrado) {
+        return res.status(404).json({
+            sucesso: false,
+            erro: ["Produto Não Encontrado"]
+        });
+    }
+
+    res.json({
+        sucesso: true,
+        dados: produtoEncontrado
+    })
+
 })
