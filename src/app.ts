@@ -68,9 +68,9 @@ async function lerArquivo (): Promise<Produto[]>  {
     }
 }
 
-async function salvarArquivo (produtos: Produto): Promise<void> {
+async function salvarArquivo (produtos: Produto[]): Promise<void> {
     try {
-        const texto = JSON.stringify(produto, null, 2)
+        const texto = JSON.stringify(produtos, null, 2);
         await fs.writeFile("dados/produtos.json", texto, "utf-8");
     }
     catch (erro) {
@@ -93,20 +93,23 @@ app.post("/api/produtos", async (req: Request, res: Response) => {
     const produtos = await lerArquivo();
 
     const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
-    
-    //O ID foi corrigido pelo github copilot, que resolveu criando a variável maxId
 
-    const NovoProduto: Produto = {
+    const novoProduto: Produto = {
         id: maxId + 1,
         nome,
         preco: Number(preco),
         categoria,
         estoque: Number(estoque),
         disponivel: true
-    }
+    };
+
+    produtos.push(novoProduto);
+    await salvarArquivo(produtos);
+
+    res.status(201).json({ sucesso: true, dados: novoProduto });
 })
 
-app.get("/api/produtos/id", async (req: Request, res: Response) => {
+app.get("/api/produtos/:id", async (req: Request, res: Response) => {
     const {id} = req.params
     const produtos = await lerArquivo();
     const produtoEncontrado = produtos.find(p => p.id === Number(id));
@@ -123,4 +126,33 @@ app.get("/api/produtos/id", async (req: Request, res: Response) => {
         dados: produtoEncontrado
     })
 
+})
+
+app.put("/api/produtos/:id", async (req: Request, res: Response) => {
+    const {id} = req.params;
+    const corpo = req.body as AtualizarProdutoBody;
+    let produtos = await lerArquivo();
+    
+    const index = produtos.findIndex(p => p.id === Number(id));
+
+    if (index === -1) {
+        return res.status(404).json({ 
+            sucesso: false,
+            erro: ["Produto não encontrado"]
+        })
+    };
+
+
+    
+    const produtoEditado: Produto = {
+        ...produtos[index],
+        ...corpo,
+        id: produtos[index]!.id
+    } as Produto;
+
+    produtos[index] = produtoEditado;
+
+    await salvarArquivo(produtos);
+
+    res.json({ sucesso: true, dados: produtos[index] });
 })
