@@ -1,6 +1,6 @@
-const express = require("express"); 
-import type { Response, Request, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { promises as fs } from "fs";
+
 const app = express();
 const port = 3000;
 
@@ -10,7 +10,7 @@ interface Produto {
     preco: number;
     categoria: string;
     estoque: number;
-    disponível: boolean;
+    disponivel: boolean;
 }
 
 interface CriarProdutoBody {
@@ -25,7 +25,7 @@ interface AtualizarProdutoBody {
     preco?: number;
     categoria?: string;
     estoque?: number;
-    disponível?: boolean;
+    disponivel?: boolean;
 }
 
 interface ProdutoParams {
@@ -77,3 +77,23 @@ async function salvarArquivo (produtos: Produto): Promise<void> {
         console.error("Erro ao salvar o arquivo:", erro);
     }
 }
+
+app.get("/api/produtos", async (req: Request, res: Response) => {
+    const produtos = await lerArquivo();
+    res.json({ sucesso: true, dados: produtos});
+})
+
+app.post("/api/produtos", async (req: Request, res: Response) => {
+    const { nome, preco, categoria, estoque } = req.body;
+    const produtos = await lerArquivo();
+
+    const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
+    const NovoProduto: Produto = {
+        id: maxId + 1,
+        nome,
+        preco: Number(preco),
+        categoria,
+        estoque: Number(estoque),
+        disponivel: true
+    }
+})
