@@ -50,6 +50,7 @@ app.set("view engine", "ejs");
 app.set("views", "./src/views");
 app.use(express.static("public"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use((req: Request, res: Response, next: NextFunction) => {
     const agora = new Date().toLocaleTimeString();
     console.log(`[${agora}] ${req.method} ${req.url}`);
@@ -172,4 +173,26 @@ app.delete("/api/produtos/:id", async (req: Request, res: Response) => {
     await salvarArquivo(novaLista);
 
     res.json({ sucesso: true, mensagem: ["Produto removido."]});
+});
+
+app.post("produtos/cadastrar", async (req: Request, res: Response) => {
+
+    const {nome, preco, categoria, estoque} = req.body
+    const produtos = await lerArquivo();
+
+    const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
+
+    const novoProduto: Produto = {
+        id: maxId + 1,
+        nome,
+        preco: Number(preco),
+        categoria,
+        estoque: Number(estoque),
+        disponivel: true
+    };
+
+    produtos.push(novoProduto)
+    await salvarArquivo(produtos);
+
+    res.redirect("/")
 });
