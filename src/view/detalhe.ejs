@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>LojaVirtual: Detalhes do Produto</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Ficha do Produto</h1>
+
+    <div class="card-detalhe">
+        <p><strong>ID:</strong> <%= produto.id %></p>
+        <p><strong>Nome:</strong> <%= produto.nome %></p>
+        <p><strong>Categoria:</strong> <%= produto.categoria %></p>
+        <p><strong>Preço:</strong> R$ <%= produto.preco.toFixed(2) %></p>
+        <p><strong>Qtd. Estoque:</strong> <%= produto.estoque %></p>
+
+        <% if (produto.estoque > 0) { %>
+            <p style="color: green; font-weight: bold;">Unidades disponíveis!</p>
+        <% } else { %>
+            <p style="color: red; font-weight: bold;">Atenção: Produto esgotado no sistema.</p>
+        <% } %>
+    </div>
+
+    <br>
+    <hr>
+    <a href="/pagina/produtos">← Voltar para a Lista</a> | 
+    <a href="/">Página Inicial</a>
+</body>
+</html>
