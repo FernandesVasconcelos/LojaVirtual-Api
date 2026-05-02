@@ -1,12 +1,14 @@
 <!DOCTYPE html>
+
 <head>
     <title>LojaVirtual: Cadastrar Produtos</title>
     <link rel="stylesheet" href="public/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
 </head>
+
 <body>
-<table>
+    <table>
         <thead>
             <tr>
                 <th>Nome</th>
@@ -15,19 +17,23 @@
             </tr>
         </thead>
         <tbody>
-            <% produtos.forEach(p => { %>
+            <% produtos.forEach(p=> { %>
                 <tr>
-                    <td><%= p.nome %></td>
-                    <td>R$ <%= p.preco %></td>
+                    <td>
+                        <%= p.nome %>
+                    </td>
+                    <td>R$ <%= p.preco %>
+                    </td>
                     <td><a href="/pagina/produtos/<%= p.id %>">Ver Detalhes</a></td>
                 </tr>
-            <% }) %>
+                <% }) %>
         </tbody>
     </table>
     <% if (!produtos) { %>
         <p> Nenhum produto cadastrado. </p>
-    <% }; %>
-    <br>
-    <a href="/">Voltar ao Início</a>
+        <% }; %>
+            <br>
+            <a href="/">Voltar ao Início</a>
 </body>
+
 </html>

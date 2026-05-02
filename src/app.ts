@@ -56,11 +56,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const agora = new Date().toLocaleTimeString();
     console.log(`[${agora}] ${req.method} ${req.url}`);
     next();
-  });
+});
 
 
 
-async function lerArquivo (): Promise<Produto[]>  {
+async function lerArquivo(): Promise<Produto[]> {
     try {
         const texto = await fs.readFile("dados/produtos.json", "utf-8");
         return JSON.parse(texto);
@@ -70,7 +70,7 @@ async function lerArquivo (): Promise<Produto[]>  {
     }
 }
 
-async function salvarArquivo (produtos: Produto[]): Promise<void> {
+async function salvarArquivo(produtos: Produto[]): Promise<void> {
     try {
         const texto = JSON.stringify(produtos, null, 2);
         await fs.writeFile("dados/produtos.json", texto, "utf-8");
@@ -80,22 +80,22 @@ async function salvarArquivo (produtos: Produto[]): Promise<void> {
     }
 }
 
-app.get("/", async (req: Request, res : Response) => {
-    try{
-    const produtos = await lerArquivo();
-    res.render("index", {produtos});
+app.get("/", async (req: Request, res: Response) => {
+    try {
+        const produtos = await lerArquivo();
+        res.render("index", { produtos });
     }
     catch (error) {
         console.error("Erro ao carregar página principal.")
-        res.render("erro", {mensagem: "Erro interno ao tentar carregar página principal."})
+        res.render("erro", { mensagem: "Erro interno ao tentar carregar página principal." })
     }
 })
 
 app.get("/api/produtos", async (req: Request, res: Response) => {
-    try{
+    try {
 
-    const produtos = await lerArquivo();
-    res.json({ sucesso: true, dados: produtos});
+        const produtos = await lerArquivo();
+        res.json({ sucesso: true, dados: produtos });
     }
     catch {
         console.error("Erro ao listar")
@@ -108,27 +108,27 @@ app.get("/api/produtos", async (req: Request, res: Response) => {
 });
 
 app.post("/api/produtos", async (req: Request, res: Response) => {
-    
-    try{
-    
-    const { nome, preco, categoria, estoque } = req.body;
-    const produtos = await lerArquivo();
 
-    const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
+    try {
 
-    const novoProduto: Produto = {
-        id: maxId + 1,
-        nome,
-        preco: Number(preco),
-        categoria,
-        estoque: Number(estoque),
-        disponivel: true
-    };
+        const { nome, preco, categoria, estoque } = req.body;
+        const produtos = await lerArquivo();
 
-    produtos.push(novoProduto);
-    await salvarArquivo(produtos);
+        const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
 
-    res.status(201).json({ sucesso: true, dados: novoProduto });
+        const novoProduto: Produto = {
+            id: maxId + 1,
+            nome,
+            preco: Number(preco),
+            categoria,
+            estoque: Number(estoque),
+            disponivel: true
+        };
+
+        produtos.push(novoProduto);
+        await salvarArquivo(produtos);
+
+        res.status(201).json({ sucesso: true, dados: novoProduto });
     }
     catch {
         console.error("Erro ao adicionar")
@@ -140,26 +140,26 @@ app.post("/api/produtos", async (req: Request, res: Response) => {
 })
 
 app.get("/api/produtos/:id", async (req: Request, res: Response) => {
-    
-    try{
 
-    const {id} = req.params
-    const produtos = await lerArquivo();
-    const produtoEncontrado = produtos.find(p => p.id === Number(id));
+    try {
 
-    if (!produtoEncontrado) {
-        return res.status(404).json({
-            sucesso: false,
-            erro: ["Produto Não Encontrado"]
-        });
+        const { id } = req.params
+        const produtos = await lerArquivo();
+        const produtoEncontrado = produtos.find(p => p.id === Number(id));
+
+        if (!produtoEncontrado) {
+            return res.status(404).json({
+                sucesso: false,
+                erro: ["Produto Não Encontrado"]
+            });
+        }
+
+        res.json({
+            sucesso: true,
+            dados: produtoEncontrado
+        })
     }
-
-    res.json({
-        sucesso: true,
-        dados: produtoEncontrado
-    })
-    }
-    catch{
+    catch {
         console.error("Erro ao obter produto")
         res.status(500).json({
             sucesso: false,
@@ -170,35 +170,35 @@ app.get("/api/produtos/:id", async (req: Request, res: Response) => {
 })
 
 app.put("/api/produtos/:id", async (req: Request, res: Response) => {
-    
-    try{
-    
-    const {id} = req.params;
-    const corpo = req.body as AtualizarProdutoBody;
-    let produtos = await lerArquivo();
-    
-    const index = produtos.findIndex(p => p.id === Number(id));
 
-    if (index === -1) {
-        return res.status(404).json({ 
-            sucesso: false,
-            erro: ["Produto não encontrado"]
-        })
-    };
-    
-    const produtoEditado: Produto = {
-        ...produtos[index],
-        ...corpo,
-        id: produtos[index]!.id
-    } as Produto;
+    try {
 
-    produtos[index] = produtoEditado;
+        const { id } = req.params;
+        const corpo = req.body as AtualizarProdutoBody;
+        let produtos = await lerArquivo();
 
-    await salvarArquivo(produtos);
+        const index = produtos.findIndex(p => p.id === Number(id));
 
-    res.json({ sucesso: true, dados: produtos[index] });
+        if (index === -1) {
+            return res.status(404).json({
+                sucesso: false,
+                erro: ["Produto não encontrado"]
+            })
+        };
+
+        const produtoEditado: Produto = {
+            ...produtos[index],
+            ...corpo,
+            id: produtos[index]!.id
+        } as Produto;
+
+        produtos[index] = produtoEditado;
+
+        await salvarArquivo(produtos);
+
+        res.json({ sucesso: true, dados: produtos[index] });
     }
-    catch{
+    catch {
         console.error("Erro trocar produto")
         res.status(500).json({
             sucesso: false,
@@ -210,23 +210,23 @@ app.put("/api/produtos/:id", async (req: Request, res: Response) => {
 
 app.delete("/api/produtos/:id", async (req: Request, res: Response) => {
 
-    try{
+    try {
 
-    const {id} = req.params;
-    let produtos = await lerArquivo();
+        const { id } = req.params;
+        let produtos = await lerArquivo();
 
-    const existe = produtos.find(p => p.id === Number(id));
-    if (!existe) {
-        return res.status(404).json({ sucesso: false, erro: ["Produto não encontrado."]})
+        const existe = produtos.find(p => p.id === Number(id));
+        if (!existe) {
+            return res.status(404).json({ sucesso: false, erro: ["Produto não encontrado."] })
+        }
+
+        const novaLista = produtos.filter(p => p.id !== Number(id));
+
+        await salvarArquivo(novaLista);
+
+        res.json({ sucesso: true, mensagem: ["Produto removido."] });
     }
-
-    const novaLista = produtos.filter(p => p.id !== Number(id));
-
-    await salvarArquivo(novaLista);
-
-    res.json({ sucesso: true, mensagem: ["Produto removido."]});
-    }
-    catch{
+    catch {
         console.error("Erro apagar produto")
         res.status(500).json({
             sucesso: false,
@@ -237,24 +237,24 @@ app.delete("/api/produtos/:id", async (req: Request, res: Response) => {
 });
 
 app.post("/produtos/cadastrar", async (req: Request, res: Response) => {
-    try{ 
-    const {nome, preco, categoria, estoque} = req.body
-    const produtos = await lerArquivo();
+    try {
+        const { nome, preco, categoria, estoque } = req.body
+        const produtos = await lerArquivo();
 
-    const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
+        const maxId = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) : 0;
 
-    const novoProduto: Produto = {
-        id: maxId + 1,
-        nome,
-        preco: Number(preco),
-        categoria,
-        estoque: Number(estoque),
-        disponivel: true
-    };
+        const novoProduto: Produto = {
+            id: maxId + 1,
+            nome,
+            preco: Number(preco),
+            categoria,
+            estoque: Number(estoque),
+            disponivel: true
+        };
 
-    produtos.push(novoProduto)
-    await salvarArquivo(produtos);
-            res.redirect("/")
+        produtos.push(novoProduto)
+        await salvarArquivo(produtos);
+        res.redirect("/")
     }
     catch (error) {
         console.error("Erro ao cadastrar:", error);
