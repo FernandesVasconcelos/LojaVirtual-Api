@@ -1,3 +1,4 @@
+import { error } from "console";
 import express, { Request, Response, NextFunction } from "express";
 import { promises as fs } from "fs";
 
@@ -80,16 +81,36 @@ async function salvarArquivo (produtos: Produto[]): Promise<void> {
 }
 
 app.get("/", async (req: Request, res : Response) => {
+    try{
     const produtos = await lerArquivo();
     res.render("index", {produtos});
+    }
+    catch (error) {
+        console.error("Erro ao carregar página principal.")
+        res.render("erro", {mensagem: "Erro interno ao tentar carregar página principal."})
+    }
 })
 
 app.get("/api/produtos", async (req: Request, res: Response) => {
+    try{
+
     const produtos = await lerArquivo();
     res.json({ sucesso: true, dados: produtos});
-})
+    }
+    catch {
+        console.error("Erro ao listar")
+        res.status(500).json({
+            sucesso: false,
+            erro: ["Falha interna ao carregar os produtos."]
+        });
+    }
+
+});
 
 app.post("/api/produtos", async (req: Request, res: Response) => {
+    
+    try{
+    
     const { nome, preco, categoria, estoque } = req.body;
     const produtos = await lerArquivo();
 
@@ -108,9 +129,20 @@ app.post("/api/produtos", async (req: Request, res: Response) => {
     await salvarArquivo(produtos);
 
     res.status(201).json({ sucesso: true, dados: novoProduto });
+    }
+    catch {
+        console.error("Erro ao adicionar")
+        res.status(500).json({
+            sucesso: false,
+            erro: ["Falha interna ao tentar adicionar."]
+        });
+    }
 })
 
 app.get("/api/produtos/:id", async (req: Request, res: Response) => {
+    
+    try{
+
     const {id} = req.params
     const produtos = await lerArquivo();
     const produtoEncontrado = produtos.find(p => p.id === Number(id));
@@ -126,10 +158,21 @@ app.get("/api/produtos/:id", async (req: Request, res: Response) => {
         sucesso: true,
         dados: produtoEncontrado
     })
+    }
+    catch{
+        console.error("Erro ao obter produto")
+        res.status(500).json({
+            sucesso: false,
+            erro: ["Falha interna ao tentar achar produto."]
+        });
+    }
 
 })
 
 app.put("/api/produtos/:id", async (req: Request, res: Response) => {
+    
+    try{
+    
     const {id} = req.params;
     const corpo = req.body as AtualizarProdutoBody;
     let produtos = await lerArquivo();
@@ -142,8 +185,6 @@ app.put("/api/produtos/:id", async (req: Request, res: Response) => {
             erro: ["Produto não encontrado"]
         })
     };
-
-
     
     const produtoEditado: Produto = {
         ...produtos[index],
@@ -156,9 +197,20 @@ app.put("/api/produtos/:id", async (req: Request, res: Response) => {
     await salvarArquivo(produtos);
 
     res.json({ sucesso: true, dados: produtos[index] });
+    }
+    catch{
+        console.error("Erro trocar produto")
+        res.status(500).json({
+            sucesso: false,
+            erro: ["Falha interna ao tentar alterar produto."]
+        });
+    }
+
 })
 
 app.delete("/api/produtos/:id", async (req: Request, res: Response) => {
+
+    try{
 
     const {id} = req.params;
     let produtos = await lerArquivo();
@@ -168,15 +220,24 @@ app.delete("/api/produtos/:id", async (req: Request, res: Response) => {
         return res.status(404).json({ sucesso: false, erro: ["Produto não encontrado."]})
     }
 
-    const novaLista = produtos.filter(p => p.id === Number(id));
+    const novaLista = produtos.filter(p => p.id !== Number(id));
 
     await salvarArquivo(novaLista);
 
     res.json({ sucesso: true, mensagem: ["Produto removido."]});
+    }
+    catch{
+        console.error("Erro apagar produto")
+        res.status(500).json({
+            sucesso: false,
+            erro: ["Falha interna ao tentar apagar produto."]
+        });
+    }
+
 });
 
-app.post("produtos/cadastrar", async (req: Request, res: Response) => {
-
+app.post("/produtos/cadastrar", async (req: Request, res: Response) => {
+    try{ 
     const {nome, preco, categoria, estoque} = req.body
     const produtos = await lerArquivo();
 
@@ -193,6 +254,10 @@ app.post("produtos/cadastrar", async (req: Request, res: Response) => {
 
     produtos.push(novoProduto)
     await salvarArquivo(produtos);
-
-    res.redirect("/")
+            res.redirect("/")
+    }
+    catch (error) {
+        console.error("Erro ao cadastrar:", error);
+        res.render("erro", { mensagem: "Não foi possível salvar o produto." })
+    }
 });
